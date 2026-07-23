@@ -16,3 +16,7 @@ ModÃ©liser la dÃ©gradation progressive d'une image propre $x_0$ en un bruit gaus
 
 ### 3. Impact sur la StÃ©ganalyse ($H_1$ et $H_2$)
 Le paramÃ¨tre $\bar{\alpha}_t$ montre que pour $t$ Ã©levÃ©, l'information haute frÃ©quence de $x_0$ est progressivement Ã©crasÃ©e par la variance du bruit gaussien. C'est ce lissage/remplacement haute frÃ©quence qui crÃ©e la rupture statistique mesurÃ©e par SRM.
+
+### 4. Intuition & Vulgarisation
+Le DDPM repose sur le principe de la dégradation progressive (Forward) puis de la reconstruction pas-à-pas (Reverse) via un prédicteur de bruit (UNet). Les résidus de ce dépoussiérage itératif laissent des micro-signatures fréquentielles responsables des faux positifs SRM.
+
