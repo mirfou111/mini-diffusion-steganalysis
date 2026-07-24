@@ -1,90 +1,95 @@
 import os
+import argparse
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from torchvision import transforms, datasets
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+from PIL import Image
 from tqdm import tqdm
 
 from src.ddpm import DDPMScheduler
 from src.unet import MiniUNet
 
-def train():
-    # Configuration Hyperparamètres
+class SimpleImageDataset(Dataset):
+    def __init__(self, folder_path, img_size=256):
+        self.folder_path = folder_path
+        self.files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) 
+                      if f.lower().endswith(('.png', '.jpg', '.jpeg', '.pgm'))]
+        
+        self.transform = transforms.Compose([
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.5], [0.5]) # [0, 1] -> [-1, 1]
+        ])
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        img = Image.open(self.files[idx]).convert("L")
+        return self.transform(img)
+
+def train(epochs=50, batch_size=8, lr=2e-4):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"==> Entraînement sur l'appareil : {device}")
 
-    epochs = 10
-    batch_size = 8
-    lr = 1e-4
-    image_size = 256
-    num_timesteps = 1000
+    raw_dir = "data/raw"
+    if not os.path.exists(raw_dir) or len(os.listdir(raw_dir)) == 0:
+        raise ValueError(f"❌ Le dossier '{raw_dir}' est vide ! Exécutez d'abord le script d'extraction.")
 
-    # Transformations : Conversion en niveau de gris + Normalisation [-1, 1]
-    transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((image_size, image_size)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5])  # Ramène les pixels de [0, 1] à [-1, 1]
-    ])
+    dataset = SimpleImageDataset(raw_dir)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    print(f"📊 Dataset chargé : {len(dataset)} images.")
 
-    # Utilisation d'un dataset factice si data/raw est vide (pour tester le script)
-    data_dir = "data/raw"
-    if not os.path.exists(data_dir) or len(os.listdir(data_dir)) == 0:
-        print("==> Dossier 'data/raw' vide. Génération de données synthétiques de test...")
-        os.makedirs(data_dir, exist_ok=True)
-        # Création d'un sous-dossier requis par ImageFolder
-        dummy_class = os.path.join(data_dir, "images")
-        os.makedirs(dummy_class, exist_ok=True)
-        from PIL import Image
-        for i in range(16):
-            img = Image.new('L', (image_size, image_size), color=i*15)
-            img.save(os.path.join(dummy_class, f"dummy_{i}.png"))
-
-    dataset = datasets.ImageFolder(root=data_dir, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-    # Initialisation des modules
-    scheduler = DDPMScheduler(num_timesteps=num_timesteps)
+    scheduler = DDPMScheduler(num_timesteps=1000)
     model = MiniUNet(in_channels=1, out_channels=1).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
 
     model.train()
     print("==> Démarrage de la boucle d'entraînement...")
 
     for epoch in range(epochs):
-        pbar = tqdm(dataloader)
         epoch_loss = 0.0
+        pbar = tqdm(dataloader, desc=f"Époque {epoch+1}/{epochs}")
+        
+        for x_0 in pbar:
+            x_0 = x_0.to(device)
+            b_size = x_0.shape[0]
 
-        for images, _ in pbar:
-            images = images.to(device)
-            b_size = images.shape[0]
+            # 1. Échantillonnage d'un timestep t aléatoire pour chaque image
+            t = torch.randint(0, scheduler.num_timesteps, (b_size,), device=device).long()
 
-            # 1. Tirer des timesteps aléatoires pour chaque image du batch
-            t = torch.randint(0, num_timesteps, (b_size,), device=device).long()
+            # 2. Bruit gaussien cible
+            noise = torch.randn_like(x_0).to(device)
 
-            # 2. Forward Process : Obtenir l'image bruitée x_t et le vrai bruit
-            x_t, noise = scheduler.add_noise(images, t)
+            # 3. Processus Avant (Forward) : Ajout du bruit
+            x_t = scheduler.add_noise(x_0, noise, t)
 
-            # 3. Prédiction du bruit par le UNet
+            # 4. Prédiction du bruit par le UNet
             predicted_noise = model(x_t, t)
 
-            # 4. Calcul de la Loss MSE entre le vrai bruit et le bruit prédit
+            # 5. Calcul de la Perte MSE
             loss = criterion(predicted_noise, noise)
 
-            # 5. Rétropropagation
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
             epoch_loss += loss.item()
-            pbar.set_description(f"Époque {epoch+1}/{epochs} | Loss: {loss.item():.4f}")
+            pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
 
-    # Sauvegarde des poids du modèle
+    # Sauvegarde du modèle
     os.makedirs("models", exist_ok=True)
     save_path = "models/ddpm_model.pt"
     torch.save(model.state_dict(), save_path)
     print(f"==> Modèle sauvegardé avec succès dans : {save_path}")
 
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(description="Entraînement DDPM")
+    parser.add_argument("--epochs", type=int, default=50, help="Nombre d'époques")
+    parser.add_argument("--batch_size", type=int, default=8, help="Taille du batch")
+    parser.add_argument("--lr", type=float, default=2e-4, help="Learning rate")
+    
+    args = parser.parse_args()
+    train(epochs=args.epochs, batch_size=args.batch_size, lr=args.lr)
