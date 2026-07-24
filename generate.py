@@ -14,7 +14,7 @@ def generate_images(num_images=5, output_dir="data/generated", model_path="model
     Génère des images synthétiques 256x256 en niveaux de gris à partir du modèle DDPM.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"🔄 Génération d'images sur : {device}")
+    print(f"Génération d'images sur : {device}")
 
     num_timesteps = 1000
     scheduler = DDPMScheduler(num_timesteps=num_timesteps)
@@ -23,9 +23,9 @@ def generate_images(num_images=5, output_dir="data/generated", model_path="model
     
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=device))
-        print(f"✅ Poids du modèle chargés avec succès depuis : {model_path}")
+        print(f"Poids du modèle chargés avec succès depuis : {model_path}")
     else:
-        print(f"⚠️ Aucun poids trouvé à '{model_path}'. Génération à partir du modèle non entraîné.")
+        print(f"Aucun poids trouvé à '{model_path}'. Génération à partir du modèle non entraîné.")
 
     model.eval()
 
@@ -33,7 +33,7 @@ def generate_images(num_images=5, output_dir="data/generated", model_path="model
     x = torch.randn(num_images, 1, 256, 256, device=device)
 
     # 2. Reverse Process (Dépollution progressive)
-    print("🎨 Processus de diffusion inverse en cours...")
+    print("Processus de diffusion inverse en cours...")
     for t_idx in tqdm(reversed(range(num_timesteps)), total=num_timesteps, desc="Sampling DDPM"):
         t = torch.full((num_images,), t_idx, device=device, dtype=torch.long)
         predicted_noise = model(x, t)
@@ -62,7 +62,7 @@ def generate_images(num_images=5, output_dir="data/generated", model_path="model
         img = Image.fromarray(x_np[i], mode='L')
         img.save(out_path)
 
-    print(f"✨ {num_images} images générées avec succès dans le dossier : '{output_dir}'")
+    print(f"{num_images} images générées avec succès dans le dossier : '{output_dir}'")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Générateur d'images DDPM")

@@ -35,11 +35,11 @@ def train(epochs=50, batch_size=8, lr=2e-4):
 
     raw_dir = "data/raw"
     if not os.path.exists(raw_dir) or len(os.listdir(raw_dir)) == 0:
-        raise ValueError(f"❌ Le dossier '{raw_dir}' est vide ! Exécutez d'abord le script d'extraction.")
+        raise ValueError(f"Le dossier '{raw_dir}' est vide ! Exécutez d'abord le script d'extraction.")
 
     dataset = SimpleImageDataset(raw_dir)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    print(f"📊 Dataset chargé : {len(dataset)} images.")
+    print(f"Dataset chargé : {len(dataset)} images.")
 
     scheduler = DDPMScheduler(num_timesteps=1000)
     model = MiniUNet(in_channels=1, out_channels=1).to(device)

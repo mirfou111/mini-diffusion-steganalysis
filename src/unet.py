@@ -115,6 +115,6 @@ if __name__ == "__main__":
     
     predicted_noise = model(x_dummy, t_dummy)
     
-    print("✅ MiniUNet initialisé et testé avec succès !")
+    print("MiniUNet initialisé et testé avec succès !")
     print(f"Forme de l'entrée : {x_dummy.shape}")
     print(f"Forme de la sortie (Bruit prédit) : {predicted_noise.shape}")

@@ -66,5 +66,5 @@ if __name__ == "__main__":
     timesteps = torch.tensor([100, 800])        # Étape 100 et 800
     
     noisy_img, noise_added = scheduler.add_noise(dummy_image, timesteps)
-    print("✅ DDPM Scheduler initialisé avec succès !")
+    print("DDPM Scheduler initialisé avec succès !")
     print(f"Forme de l'image bruitée : {noisy_img.shape}")
