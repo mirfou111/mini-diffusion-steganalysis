@@ -20,25 +20,40 @@ class DDPMScheduler:
         # Alpha_bar_t = produit cumulé des alphas (facteur global de signal à l'étape t)
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
 
+    # def add_noise(self, x_0: torch.Tensor, t: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    #     """
+    #     Applique le Forward Process en une seule étape (Reparametrization Trick).
+        
+    #     Args:
+    #         x_0 (torch.Tensor): Image originale propre [B, C, H, W]
+    #         t (torch.Tensor): Timesteps cibles pour chaque image du batch [B]
+            
+    #     Returns:
+    #         tuple[torch.Tensor, torch.Tensor]: (x_t image bruitée, epsilon bruit ajouté)
+    #     """
+    #     # Génération du bruit gaussien pur epsilon ~ N(0, I)
+    #     noise = torch.randn_like(x_0)
+        
+    #     # Récupération de sqrt(alpha_bar_t) et sqrt(1 - alpha_bar_t) pour le batch
+    #     sqrt_alpha_bar = torch.sqrt(self.alphas_cumprod[t]).view(-1, 1, 1, 1)
+    #     sqrt_one_minus_alpha_bar = torch.sqrt(1.0 - self.alphas_cumprod[t]).view(-1, 1, 1, 1)
+        
+    #     # Formule directe : x_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * noise
+    #     x_t = sqrt_alpha_bar * x_0 + sqrt_one_minus_alpha_bar * noise
+        
+    #     return x_t, noise
     def add_noise(self, x_0: torch.Tensor, t: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Applique le Forward Process en une seule étape (Reparametrization Trick).
-        
-        Args:
-            x_0 (torch.Tensor): Image originale propre [B, C, H, W]
-            t (torch.Tensor): Timesteps cibles pour chaque image du batch [B]
-            
-        Returns:
-            tuple[torch.Tensor, torch.Tensor]: (x_t image bruitée, epsilon bruit ajouté)
         """
-        # Génération du bruit gaussien pur epsilon ~ N(0, I)
+        # S'assurer que alphas_cumprod est sur le même device (CPU/CUDA) que x_0
+        self.alphas_cumprod = self.alphas_cumprod.to(x_0.device)
+        
         noise = torch.randn_like(x_0)
         
-        # Récupération de sqrt(alpha_bar_t) et sqrt(1 - alpha_bar_t) pour le batch
         sqrt_alpha_bar = torch.sqrt(self.alphas_cumprod[t]).view(-1, 1, 1, 1)
         sqrt_one_minus_alpha_bar = torch.sqrt(1.0 - self.alphas_cumprod[t]).view(-1, 1, 1, 1)
         
-        # Formule directe : x_t = sqrt(alpha_bar_t) * x_0 + sqrt(1 - alpha_bar_t) * noise
         x_t = sqrt_alpha_bar * x_0 + sqrt_one_minus_alpha_bar * noise
         
         return x_t, noise
