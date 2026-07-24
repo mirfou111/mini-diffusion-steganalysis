@@ -57,19 +57,16 @@ def train(epochs=50, batch_size=8, lr=2e-4):
             x_0 = x_0.to(device)
             b_size = x_0.shape[0]
 
-            # 1. Échantillonnage d'un timestep t aléatoire pour chaque image
+            # 1. Timestep t aléatoire pour chaque image du batch
             t = torch.randint(0, scheduler.num_timesteps, (b_size,), device=device).long()
 
-            # 2. Bruit gaussien cible
-            noise = torch.randn_like(x_0).to(device)
+            # 2. Forward Process : Obtenir x_t et le bruit réel généré en interne
+            x_t, noise = scheduler.add_noise(x_0, t)
 
-            # 3. Processus Avant (Forward) : Ajout du bruit
-            x_t = scheduler.add_noise(x_0, noise, t)
-
-            # 4. Prédiction du bruit par le UNet
+            # 3. Prédiction du bruit par le UNet
             predicted_noise = model(x_t, t)
 
-            # 5. Calcul de la Perte MSE
+            # 4. Perte MSE entre le bruit prédit et le vrai bruit
             loss = criterion(predicted_noise, noise)
 
             optimizer.zero_grad()
