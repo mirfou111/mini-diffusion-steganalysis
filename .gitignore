@@ -5,3 +5,7 @@ __pycache__/
 .DS_Store
 models/*.pt
 data/
+*.zip
+bossbase_temp/
+data/raw/
+data/generated/
