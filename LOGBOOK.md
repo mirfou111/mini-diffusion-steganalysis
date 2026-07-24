@@ -37,3 +37,8 @@ Les **Skip Connections** et les opÃ©rations de redimensionnement (Up/Downsamplin
 ### 5. Rôle du UNet dans la détection
 Le UNet combine analyse globale (Downsampling) et précision locale (Skip Connections). Ce processus de reconstruction crée de micro-artefacts spectraux à haute fréquence qui trompent les filtres SRM (H1) et masquent l'insertion S-UNIWARD (H2).
 
+
+## Étape 4 : Environnement d'Entraînement
+### Choix Matériel
+L'entraînement est déporté sur GPU NVIDIA T4 (Google Colab) pour accélérer le processus de convergence, tandis que le développement et l'inférence de test restent hébergés en local.
+
