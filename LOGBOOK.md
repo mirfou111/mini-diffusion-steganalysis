@@ -34,11 +34,23 @@ Construire le r√©seau de neurones $\epsilon_\theta(x_t, t)$ capable d'estimer le
 
 ### 3. Impact sur la St√©ganalyse ($H_1$ et $H_2$)
 Les **Skip Connections** et les op√©rations de redimensionnement (Up/Downsampling) cr√©ent des artefacts p√©riodiques √† haute fr√©quence dans le domaine spatial. Ces motifs (d√ªs au repliement spectral / aliasing des convolutions) perturbent les filtres SRM.
-### 5. RÙle du UNet dans la dÈtection
-Le UNet combine analyse globale (Downsampling) et prÈcision locale (Skip Connections). Ce processus de reconstruction crÈe de micro-artefacts spectraux ‡ haute frÈquence qui trompent les filtres SRM (H1) et masquent l'insertion S-UNIWARD (H2).
+### 5. RÔøΩle du UNet dans la dÔøΩtection
+Le UNet combine analyse globale (Downsampling) et prÔøΩcision locale (Skip Connections). Ce processus de reconstruction crÔøΩe de micro-artefacts spectraux ÔøΩ haute frÔøΩquence qui trompent les filtres SRM (H1) et masquent l'insertion S-UNIWARD (H2).
 
 
-## …tape 4 : Environnement d'EntraÓnement
-### Choix MatÈriel
-L'entraÓnement est dÈportÈ sur GPU NVIDIA T4 (Google Colab) pour accÈlÈrer le processus de convergence, tandis que le dÈveloppement et l'infÈrence de test restent hÈbergÈs en local.
+## ÔøΩtape 4 : Environnement d'EntraÔøΩnement
+### Choix MatÔøΩriel
+L'entraÔøΩnement est dÔøΩportÔøΩ sur GPU NVIDIA T4 (Google Colab) pour accÔøΩlÔøΩrer le processus de convergence, tandis que le dÔøΩveloppement et l'infÔøΩrence de test restent hÔøΩbergÔøΩs en local.
 
+## √âtape 4 : Entra√Ænement & Algorithme de Sampling (Reverse Process)
+
+### 1. Objectif Acad√©mique
+- **Loss Fonction :** Optimisation de la MSE Loss $\mathcal{L} = \|\epsilon - \epsilon_\theta(x_t, t)\|^2$
+- **Sampling Iteratif (Algorithm 2 DDPM) :** Reconstituer l'image $x_0$ √† partir de $x_T \sim \mathcal{N}(0, \mathbf{I})$ en estimant it√©rativement le bruit √† chaque √©tape $t \in [T, \dots, 1]$.
+
+### 2. √âquation du Reverse Step
+$$x_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \bar{\alpha}_t}} \epsilon_\theta(x_t, t) \right) + \sigma_t z$$
+o√π $z \sim \mathcal{N}(0, \mathbf{I})$ si $t > 1$, sinon $z = 0$.
+
+### 3. Impact sur la St√©ganalyse ($H_1$ et $H_2$)
+L'accumulation des erreurs de pr√©diction $\epsilon_\theta$ sur les $T$ √©tapes de retro-propagation g√©n√®re la variance r√©siduelle synth√©tique. C'est ce cumul d'incertitude sur la trajectoire de sampling qui modifie le spectre des hautes fr√©quences.
