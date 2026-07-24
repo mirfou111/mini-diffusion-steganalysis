@@ -34,3 +34,6 @@ Construire le r√©seau de neurones $\epsilon_\theta(x_t, t)$ capable d'estimer le
 
 ### 3. Impact sur la St√©ganalyse ($H_1$ et $H_2$)
 Les **Skip Connections** et les op√©rations de redimensionnement (Up/Downsampling) cr√©ent des artefacts p√©riodiques √† haute fr√©quence dans le domaine spatial. Ces motifs (d√ªs au repliement spectral / aliasing des convolutions) perturbent les filtres SRM.
+### 5. RÙle du UNet dans la dÈtection
+Le UNet combine analyse globale (Downsampling) et prÈcision locale (Skip Connections). Ce processus de reconstruction crÈe de micro-artefacts spectraux ‡ haute frÈquence qui trompent les filtres SRM (H1) et masquent l'insertion S-UNIWARD (H2).
+
