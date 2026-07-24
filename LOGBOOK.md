@@ -54,3 +54,8 @@ o√π $z \sim \mathcal{N}(0, \mathbf{I})$ si $t > 1$, sinon $z = 0$.
 
 ### 3. Impact sur la St√©ganalyse ($H_1$ et $H_2$)
 L'accumulation des erreurs de pr√©diction $\epsilon_\theta$ sur les $T$ √©tapes de retro-propagation g√©n√®re la variance r√©siduelle synth√©tique. C'est ce cumul d'incertitude sur la trajectoire de sampling qui modifie le spectre des hautes fr√©quences.
+## …tape 6 : Validation du GPU et AccÈlÈration CUDA
+- **Correctif :** Alignement dynamique du device CUDA pour lphas_cumprod dans dd_noise().
+- **Performance :** Temps par Èpoque rÈduit ‡ ~0.3s sur Colab (GPU T4).
+- **Loss finale :** Convergence stabilisÈe autour de 0.18 sur donnÈes de validation.
+
