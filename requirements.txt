@@ -1,16 +1,19 @@
-# Calcul matriciel & Deep Learning
+
 torch>=2.0.0
 torchvision>=0.15.0
 
-# Traitement d'images & Données
-numpy>=1.24.0
-Pillow>=9.5.0
-tqdm>=4.65.0              # Barres de progression pendant l'entraînement
+# Monitoring
+psutil
 
-# Interface & API (pour l'étape finale)
-fastapi>=0.100.0
-uvicorn>=0.22.0
-gradio>=3.35.0
+# Traitement d'images & Données
+numpy<2.0.0,>=1.24.0
+scikit-learn
+Pillow>=9.5.0
+tqdm>=4.65.0
+
+# Interface & API
+gradio>=4.0.0,<5.0.0
+huggingface-hub
 
 # Visualisation & Analyse
 matplotlib>=3.7.0
